@@ -99,15 +99,27 @@ public:
         return activationFunction(u);
     }
 
-private:
+protected:
     const int numBatch;
     const int numNodes;
     const Layer* prevLayer;
     const ActivationFunction activationFunction;
     // weight
-    Matrix w;
+    const Matrix w;
     // bias
-    Matrix b;
+    const Matrix b;
+};
+
+class FirstLayer : public Layer {
+public:
+    FirstLayer(int numBatch, int numNodes) :
+        Layer(numBatch, numNodes, nullptr, ActivationFunction(nullptr))
+    {
+    }
+    Matrix forwardPropagation(const Matrix& input) const {
+        // identity mapping
+        return input;
+    }
 };
 
 int main(void){
