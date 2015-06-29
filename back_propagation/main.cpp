@@ -59,7 +59,7 @@ public:
     ActivationFunction(const Parent& other) :
         Parent(other)
     {}
-    Matrix operator()(const Matrix& input) {
+    Matrix operator()(const Matrix& input) const {
         Matrix output(input.getRow(), input.getCol());
         for (int row = 0; row < input.getRow(); row++) {
             for (int col = 0; col < input.getCol(); col++) {
@@ -70,27 +70,46 @@ public:
     };
 };
 
-int main(void){
-    struct Layer {
-        const int numNode;
-    };
+class Layer {
+public:
+    Layer(
+        const int numBatch,
+        const int numNodes,
+        const Layer* prevLayer,
+        const ActivationFunction& activationFunction) :
+        numBatch(numBatch),
+        numNodes(numNodes),
+        prevLayer(prevLayer),
+        activationFunction(activationFunction),
+        w(numNodes, prevLayer->getNumNodes()),
+        b(numBatch, 1)
+    {
+    }
+    int getNumNodes() const {
+        return numNodes;
+    }
+    Matrix forwardPropagation(const Matrix& input) const {
+        // input : numNodes * numBatch
+        // u : nextLayer->getNumNodes() * 1
+        Matrix u = Matrix::Mult(w, input);
+        for (int nodeIndex = 0; nodeIndex < numNodes; nodeIndex++) {
+        for (int batchIndex = 0; batchIndex < numBatch; batchIndex++) {
+            u(nodeIndex, batchIndex) += b(numBatch, 1);
+        }}
+        return activationFunction(u);
+    }
 
-    const Layer prevLayer{2};
-    const Layer nextLayer{2};
-    static const int numBatch = 3;
-
+private:
+    const int numBatch;
+    const int numNodes;
+    const Layer* prevLayer;
+    const ActivationFunction activationFunction;
     // weight
-    Matrix w(numNode, numBatch);
+    Matrix w;
     // bias
-    Matrix b(numBatch, 1);
-    // input
-    Matrix x(numNode, numBatch);
-    // activation function
-    ActivationFunction f([](double input) {
-        return std::max<double>(input, 0);
-    });
+    Matrix b;
+};
 
-    Matrix u = Matrix::Mult(w, x);
-    Matrix z = f(u);
+int main(void){
     return 0;
 }
