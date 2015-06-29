@@ -32,14 +32,13 @@ public:
     static Matrix Mult(const Matrix& left, const Matrix& right) {
         Matrix ret(left.row, right.col);
         for (int row = 0; row < ret.getRow(); row++) {
-            for (int col = 0; col < ret.getCol(); col++) {
-                double sum = 0;
-                for (int sumIndex = 0; sumIndex < left.getCol(); sumIndex++) {
-                    sum += left(row, sumIndex) * right(sumIndex, col);
-                }
-                ret(row, col) = sum;
+        for (int col = 0; col < ret.getCol(); col++) {
+            double sum = 0;
+            for (int sumIndex = 0; sumIndex < left.getCol(); sumIndex++) {
+                sum += left(row, sumIndex) * right(sumIndex, col);
             }
-        }
+            ret(row, col) = sum;
+        }}
         return ret;
     }
 
@@ -62,10 +61,9 @@ public:
     Matrix operator()(const Matrix& input) const {
         Matrix output(input.getRow(), input.getCol());
         for (int row = 0; row < input.getRow(); row++) {
-            for (int col = 0; col < input.getCol(); col++) {
+        for (int col = 0; col < input.getCol(); col++) {
                 output(row, col) =  Parent::operator()(3);
-            }
-        }
+            }}
         return output;
     };
 };
