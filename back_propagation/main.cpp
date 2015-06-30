@@ -80,8 +80,15 @@ public:
             std::cout << std::endl;
         }
     }
+    static Matrix ComponentProduct(const Matrix& left, const Matrix& right) {
+        Matrix ret = left;
+        for (int index = 0; index < left.row * left.col; index++) {
+            ret(index) *= right(index);
+        }
+        return ret;
+    }
     static Matrix Mult(const Matrix& left, const Matrix& right) {
-        Matrix ret(left.row, right.col);
+        Matrix ret(left.getRow(), right.getCol());
         for (int row = 0; row < ret.getRow(); row++) {
         for (int col = 0; col < ret.getCol(); col++) {
             double sum = 0;
@@ -92,6 +99,20 @@ public:
         }}
         return ret;
     }
+    static Matrix MultT(const Matrix& left, const Matrix& right) {
+        // left^T * right
+        Matrix ret(left.getCol(), right.getCol());
+        for (int row = 0; row < ret.getRow(); row++) {
+        for (int col = 0; col < ret.getCol(); col++) {
+            double sum = 0;
+            for (int sumIndex = 0; sumIndex < left.getRow(); sumIndex++) {
+                sum += left(sumIndex, row) * right(sumIndex, col);
+            }
+            ret(row, col) = sum;
+        }}
+        return ret;
+    }
+    friend Matrix operator-(const Matrix& left, const Matrix& right);
 
 private:
     int row;
@@ -143,15 +164,16 @@ public:
     Layer(
         const int numBatch,
         const int numNodes,
-        const Layer* prevLayer,
-        const ActivationFunction& activationFunction) :
+        const ActivationFunction& activationFunction,
+        const Layer* prevLayer) :
         numBatch(numBatch),
         numNodes(numNodes),
-        prevLayer(prevLayer),
         activationFunction(activationFunction),
+        prevLayer(prevLayer),
         w(numNodes, prevLayer ? prevLayer->getNumNodes() : 1),
         b(numBatch, 1),
-        u(1, 1)
+        u(1, 1),
+        delta(1, 1)
     {
     }
     int getNumNodes() const {
@@ -168,29 +190,34 @@ public:
         Matrix::swap(u, this->u);
         return activationFunction.applyPrimaryFunction(u);
     }
+    static void backwardPropagation(Layer& prevLayer, const Layer& nextLayer) {
+        Matrix delta = Matrix::ComponentProduct(
+            prevLayer.activationFunction.applyDerivativeFunction(prevLayer.u),
+            Matrix::MultT(nextLayer.w, nextLayer.delta));
+        Matrix::swap(prevLayer.delta, delta);
+    }
 
 protected:
     const int numBatch;
     const int numNodes;
-    const Layer* prevLayer;
     const ActivationFunction activationFunction;
+    const Layer* prevLayer;
     // weight
     const Matrix w;
     // bias
     const Matrix b;
     Matrix u;
+    Matrix delta;
 };
 
 class FirstLayer : public Layer {
 public:
-    FirstLayer(int numBatch, int numNodes) :
+    FirstLayer(int numBatch, int numNodes, const ActivationFunction& activationFunction) :
         Layer(
             numBatch,
             numNodes,
-            nullptr,
-            ActivationFunction(
-                MatrixFunction(nullptr),
-                MatrixFunction(nullptr)))
+            activationFunction,
+            nullptr)
     {
     }
     Matrix forwardPropagation(const Matrix& input) override {
@@ -198,6 +225,22 @@ public:
         return u = input;
     }
 };
+
+class LastLayer : public Layer {
+public:
+    using Layer::Layer;
+    void setDelta(Matrix&& delta) {
+        Matrix::swap(this->delta, delta);
+    }
+};
+
+Matrix operator-(const Matrix& left, const Matrix& right) {
+    Matrix ret(left);
+    for (int i = 0; i < right.row * right.col; i++) {
+        ret(i) -= right(i);
+    }
+    return ret;
+}
 
 int main(void) {
     const int numBatch = 3;
@@ -212,8 +255,8 @@ int main(void) {
             else
                 return 1;
         }));
-    FirstLayer firstLayer(numBatch, firstNodeNum);
-    Layer secondLayer(numBatch, firstNodeNum, &firstLayer, activationFunction);
+    FirstLayer firstLayer(numBatch, firstNodeNum, activationFunction);
+    LastLayer secondLayer(numBatch, firstNodeNum, activationFunction, &firstLayer);
 
     Matrix input(firstNodeNum, numBatch);
     input(0, 0) = 1;
@@ -236,6 +279,9 @@ int main(void) {
     target(1, 1) = 0;
     target(0, 2) = 1;
     target(1, 2) = 0;
+
+    secondLayer.setDelta(target - Y);
+    Layer::backwardPropagation(firstLayer, secondLayer);
 
     return 0;
 }
