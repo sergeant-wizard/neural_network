@@ -104,7 +104,7 @@ public:
         }}
         return ret;
     }
-    static Matrix MultT(const Matrix& left, const Matrix& right) {
+    static Matrix MultT1(const Matrix& left, const Matrix& right) {
         // left^T * right
         Matrix ret(left.getCol(), right.getCol());
         for (int row = 0; row < ret.getRow(); row++) {
@@ -116,6 +116,31 @@ public:
             ret(row, col) = sum;
         }}
         return ret;
+    }
+    static Matrix MultT2(const Matrix& left, const Matrix& right) {
+        // left * right^T
+        Matrix ret(left.getRow(), right.getRow());
+        for (int row = 0; row < ret.getRow(); row++) {
+        for (int col = 0; col < ret.getCol(); col++) {
+            double sum = 0;
+            for (int sumIndex = 0; sumIndex < left.getCol(); sumIndex++) {
+                sum += left(row, sumIndex) * right(col, sumIndex);
+            }
+            ret(row, col) = sum;
+        }}
+        return ret;
+    }
+    Matrix& operator-=(const Matrix& other) {
+        for (int index = 0; index < row * col; index++) {
+            components[index] -= other.components[index];
+        }
+        return (*this);
+    }
+    Matrix& operator*=(const double coef) {
+        for (int index = 0; index < row * col; index++) {
+            components[index] *= coef;
+        }
+        return (*this);
     }
     friend Matrix operator-(const Matrix& left, const Matrix& right);
 
@@ -178,6 +203,7 @@ public:
         w(numNodes, prevLayer ? prevLayer->getNumNodes() : 1),
         b(numBatch, 1),
         u(1, 1),
+        z(1, 1),
         delta(1, 1)
     {
         w.fill(0.5);
@@ -191,16 +217,35 @@ public:
         Matrix u = Matrix::Mult(w, input);
         for (int nodeIndex = 0; nodeIndex < numNodes; nodeIndex++) {
         for (int batchIndex = 0; batchIndex < numBatch; batchIndex++) {
-            u(nodeIndex, batchIndex) += b(numBatch, 0);
+            u(nodeIndex, batchIndex) += b(batchIndex, 0);
         }}
         Matrix::swap(u, this->u);
-        return activationFunction.applyPrimaryFunction(this->u);
+        Matrix tmp = activationFunction.applyPrimaryFunction(this->u);
+        Matrix::swap(tmp, z);
+        return z;
     }
     static void backwardPropagation(Layer& prevLayer, const Layer& nextLayer) {
         Matrix delta = Matrix::ComponentProduct(
             prevLayer.activationFunction.applyDerivativeFunction(prevLayer.u),
-            Matrix::MultT(nextLayer.w, nextLayer.delta));
+            Matrix::MultT1(nextLayer.w, nextLayer.delta));
         Matrix::swap(prevLayer.delta, delta);
+    }
+    static void gradientDescent(const Layer& prevLayer, Layer& nextLayer) {
+        static const double epsilon = 0.1;
+        Matrix DeltaW = Matrix::MultT2(nextLayer.delta, prevLayer.z);
+        DeltaW *= nextLayer.numBatch * epsilon;
+        nextLayer.w -= DeltaW;
+
+        Matrix DeltaB(nextLayer.numBatch, 1);
+        for (int batchIndex = 0; batchIndex < DeltaB.getRow(); batchIndex++) {
+            double sum = 0;
+            for (int nodeIndex = 0; nodeIndex < nextLayer.delta.getCol(); nodeIndex++) {
+                sum += nextLayer.delta(nodeIndex, batchIndex);
+            }
+            DeltaB(batchIndex, 0) = sum;
+        }
+        DeltaB *= nextLayer.numBatch * epsilon;
+        nextLayer.b -= DeltaB;
     }
     void print() const {
         std::cout << "weight" << std::endl;
@@ -219,6 +264,7 @@ protected:
     // bias
     Matrix b;
     Matrix u;
+    Matrix z;
     Matrix delta;
 };
 
@@ -234,7 +280,7 @@ public:
     }
     Matrix forwardPropagation(const Matrix& input) override {
         // identity mapping
-        return u = input;
+        return u = z = input;
     }
 };
 
@@ -296,5 +342,8 @@ int main(void) {
     secondLayer.setDelta(target - Y);
     Layer::backwardPropagation(firstLayer, secondLayer);
 
+    // Gradient Descent
+    Layer::gradientDescent(firstLayer, secondLayer);
+    secondLayer.print();
     return 0;
 }
