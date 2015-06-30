@@ -1,6 +1,15 @@
 #include<vector>
 #include<functional>
 #include<iostream>
+#include<algorithm>
+
+/*
+ * w : weight
+ * b : bias
+ * u : input
+ * y : output
+ * d : target output
+ */
 
 class Matrix {
 public:
@@ -18,6 +27,22 @@ public:
         for (int i = 0; i < row * col; i++) {
             components[i] = other(i);
         }
+    }
+    Matrix& operator=(const Matrix& other) {
+        if (components)
+            delete[] components;
+        row = other.row;
+        row = other.col;
+        components = new double[other.row * other.col]();
+        for (int i = 0; i < row * col; i++) {
+            components[i] = other(i);
+        }
+        return (*this);
+    }
+    static void swap(Matrix& left, Matrix& right) {
+        std::swap(left.row, right.row);
+        std::swap(left.col, right.col);
+        std::swap(left.components, right.components);
     }
     virtual ~Matrix() {
         if (components)
@@ -69,8 +94,8 @@ public:
     }
 
 private:
-    const int row;
-    const int col;
+    int row;
+    int col;
     double* components;
 };
 
@@ -125,13 +150,14 @@ public:
         prevLayer(prevLayer),
         activationFunction(activationFunction),
         w(numNodes, prevLayer ? prevLayer->getNumNodes() : 1),
-        b(numBatch, 1)
+        b(numBatch, 1),
+        u(1, 1)
     {
     }
     int getNumNodes() const {
         return numNodes;
     }
-    virtual Matrix forwardPropagation(const Matrix& input) const {
+    virtual Matrix forwardPropagation(const Matrix& input) {
         // input : numNodes * numBatch
         // u : nextLayer->getNumNodes() * 1
         Matrix u = Matrix::Mult(w, input);
@@ -139,6 +165,7 @@ public:
         for (int batchIndex = 0; batchIndex < numBatch; batchIndex++) {
             u(nodeIndex, batchIndex) += b(numBatch, 0);
         }}
+        Matrix::swap(u, this->u);
         return activationFunction.applyPrimaryFunction(u);
     }
 
@@ -151,6 +178,7 @@ protected:
     const Matrix w;
     // bias
     const Matrix b;
+    Matrix u;
 };
 
 class FirstLayer : public Layer {
@@ -165,13 +193,13 @@ public:
                 MatrixFunction(nullptr)))
     {
     }
-    Matrix forwardPropagation(const Matrix& input) const override {
+    Matrix forwardPropagation(const Matrix& input) override {
         // identity mapping
-        return input;
+        return u = input;
     }
 };
 
-int main(void){
+int main(void) {
     const int numBatch = 3;
     const int firstNodeNum = 2;
     ActivationFunction activationFunction(
