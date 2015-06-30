@@ -54,7 +54,7 @@ void Layer::gradientDescent(const Layer& prevLayer, Layer& nextLayer) {
     Matrix DeltaB(nextLayer.numBatch, 1);
     for (int batchIndex = 0; batchIndex < DeltaB.getRow(); batchIndex++) {
         double sum = 0;
-        for (int nodeIndex = 0; nodeIndex < nextLayer.delta.getCol(); nodeIndex++) {
+        for (int nodeIndex = 0; nodeIndex < nextLayer.delta.getRow(); nodeIndex++) {
             sum += nextLayer.delta(nodeIndex, batchIndex);
         }
         DeltaB(batchIndex, 0) = sum;
