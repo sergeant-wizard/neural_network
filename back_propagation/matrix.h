@@ -8,6 +8,7 @@ public:
     static void swap(Matrix& left, Matrix& right);
     virtual ~Matrix();
     void fill(double value);
+    void randomize(double min, double max);
     int getRow() const;
     int getCol() const;
     const double& operator()(int index) const;

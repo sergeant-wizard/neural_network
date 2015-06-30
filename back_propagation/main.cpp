@@ -16,41 +16,10 @@
  */
 
 const int numBatch = 3;
-const int firstNodeNum = 2;
-
-void applyIteration(FirstLayer& firstLayer, LastLayer& secondLayer) {
-    // forward propagation
-    Matrix input(firstNodeNum, numBatch);
-    input(0, 0) = +1;
-    input(1, 0) = -1;
-    input(0, 1) = -1;
-    input(1, 1) = +1;
-    input(0, 2) = +1;
-    input(1, 2) = +1;
-
-    Matrix Y = secondLayer.forwardPropagation(firstLayer.forwardPropagation(input));
-
-    // backward propagation
-
-    // target output
-    Matrix target(firstNodeNum, numBatch);
-    target(0, 0) = +0;
-    target(1, 0) = +0;
-    target(0, 1) = +0;
-    target(1, 1) = +0;
-    target(0, 2) = +1;
-    target(1, 2) = +0;
-
-    secondLayer.setDelta(Y -target);
-    Layer::backwardPropagation(firstLayer, secondLayer);
-
-    // Gradient Descent
-    Layer::gradientDescent(firstLayer, secondLayer);
-    secondLayer.print();
-}
 
 int main(void) {
-    ActivationFunction activationFunction(
+    srand(0);
+    ActivationFunction rectifier(
         MatrixFunction([](double input) {
             return std::max<double>(input, 0);
         }),
@@ -60,12 +29,64 @@ int main(void) {
             else
                 return 1;
         }));
+    ActivationFunction identity(
+        MatrixFunction([](double input) {
+            return input;
+        }),
+        MatrixFunction([](double) {
+            return 1;
+        }));
 
-    FirstLayer firstLayer(numBatch, firstNodeNum, activationFunction);
-    LastLayer secondLayer(numBatch, firstNodeNum, activationFunction, &firstLayer);
+    const int firstNodeNum = 2;
+    FirstLayer firstLayer(numBatch, firstNodeNum, rectifier);
+    Layer midLayer(numBatch, 3, rectifier, &firstLayer);
+    LastLayer lastLayer(numBatch, 2, identity, &midLayer);
+
+    Matrix input(firstNodeNum, numBatch);
+    input(0, 0) = +1;
+    input(1, 0) = -1;
+    input(0, 1) = -1;
+    input(1, 1) = +1;
+    input(0, 2) = +1;
+    input(1, 2) = +1;
+
+    Matrix target(firstNodeNum, numBatch);
+    target(0, 0) = +1;
+    target(1, 0) = -1;
+    target(0, 1) = -1;
+    target(1, 1) = +1;
+    target(0, 2) = +1;
+    target(1, 2) = +1;
 
     for (int i = 0; i < 32; i ++) {
-        applyIteration(firstLayer, secondLayer);
+        std::cout << "trial: " << i << std::endl;
+        // forward propagation
+        Matrix Y = lastLayer.forwardPropagation(
+            midLayer.forwardPropagation(
+                firstLayer.forwardPropagation(input)));
+        lastLayer.setDelta(Y - target);
+
+        // backward propagation
+        Layer::backwardPropagation(midLayer, lastLayer);
+        Layer::backwardPropagation(firstLayer, midLayer);
+
+        // Gradient Descent
+        Layer::gradientDescent(midLayer, lastLayer);
+        Layer::gradientDescent(firstLayer, midLayer);
+
+        std::cout << "first" << std::endl;
+        firstLayer.print();
+        std::cout << "second" << std::endl;
+        midLayer.print();
+        std::cout << "third" << std::endl;
+        lastLayer.print();
+        std::cout << std::endl;
     }
+
+    // check learned result
+    std::cout << "learned result:" << std::endl;
+    lastLayer.forwardPropagation(
+       midLayer.forwardPropagation(
+           firstLayer.forwardPropagation(input))).print();
     return 0;
 }

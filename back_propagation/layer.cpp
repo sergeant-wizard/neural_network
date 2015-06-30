@@ -1,6 +1,7 @@
 #include "layer.h"
 #include "matrix.h"
 #include <iostream>
+#include <stdlib.h>
 
 Layer::Layer(
     const int numBatch,
@@ -17,7 +18,10 @@ Layer::Layer(
     z(1, 1),
     delta(1, 1)
 {
-    w.fill(0.5);
+    for (int i = 0; i < w.getRow() * w.getCol(); i++) {
+        int dice = rand() % 10;
+        w(i) = static_cast<double>(dice) / 10.0;
+    }
 }
 
 int Layer::getNumNodes() const {

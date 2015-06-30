@@ -1,5 +1,6 @@
 #include "matrix.h"
 #include <iostream>
+#include <random>
 
 Matrix::Matrix(int row, int col):
     row(row),
@@ -39,6 +40,13 @@ Matrix::~Matrix() {
 void Matrix::fill(double value) {
     for (int index = 0; index < row * col; index++) {
         components[index] = value;
+    }
+}
+void Matrix::randomize(double min, double max) {
+    std::default_random_engine generator;
+    std::uniform_real_distribution<double> distribution(min, max);
+    for (int index = 0; index < row * col; index++) {
+        components[index] = distribution(generator);
     }
 }
 int Matrix::getRow() const {
