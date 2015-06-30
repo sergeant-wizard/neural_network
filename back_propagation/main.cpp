@@ -243,6 +243,7 @@ Matrix operator-(const Matrix& left, const Matrix& right) {
 }
 
 int main(void) {
+    // forward propagation
     const int numBatch = 3;
     const int firstNodeNum = 2;
     ActivationFunction activationFunction(
@@ -255,6 +256,7 @@ int main(void) {
             else
                 return 1;
         }));
+
     FirstLayer firstLayer(numBatch, firstNodeNum, activationFunction);
     LastLayer secondLayer(numBatch, firstNodeNum, activationFunction, &firstLayer);
 
@@ -268,8 +270,7 @@ int main(void) {
 
     Matrix Y = secondLayer.forwardPropagation(firstLayer.forwardPropagation(input));
 
-    // from forward propagation
-    // to backward propagation
+    // backward propagation
 
     // target output
     Matrix target(firstNodeNum, numBatch);
