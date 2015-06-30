@@ -74,24 +74,43 @@ private:
     double* components;
 };
 
-class ActivationFunction : public std::function<double(double)>
+class MatrixFunction : public std::function<double(double)>
 {
     using Parent = std::function<double(double)>;
 public:
-    ActivationFunction(const ActivationFunction& other) :
+    MatrixFunction(const MatrixFunction& other) :
         Parent(other)
     {}
-    ActivationFunction(const Parent& other) :
+    MatrixFunction(const Parent& other) :
         Parent(other)
     {}
     Matrix operator()(const Matrix& input) const {
         Matrix output(input.getRow(), input.getCol());
         for (int row = 0; row < input.getRow(); row++) {
         for (int col = 0; col < input.getCol(); col++) {
-                output(row, col) =  Parent::operator()(3);
+                output(row, col) =  Parent::operator()(input(row, col));
             }}
         return output;
     };
+};
+
+class ActivationFunction {
+public:
+    ActivationFunction(const MatrixFunction& primaryFunction, const MatrixFunction& derivativeFunction) :
+        primaryFunction(primaryFunction),
+        derivativeFunction(derivativeFunction)
+    {
+    }
+    Matrix applyPrimaryFunction(const Matrix& input) const {
+        return primaryFunction(input);
+    }
+    Matrix applyDerivativeFunction(const Matrix& input) const {
+        return derivativeFunction(input);
+    }
+
+private:
+    const MatrixFunction primaryFunction;
+    const MatrixFunction derivativeFunction;
 };
 
 class Layer {
@@ -120,7 +139,7 @@ public:
         for (int batchIndex = 0; batchIndex < numBatch; batchIndex++) {
             u(nodeIndex, batchIndex) += b(numBatch, 0);
         }}
-        return activationFunction(u);
+        return activationFunction.applyPrimaryFunction(u);
     }
 
 protected:
@@ -137,7 +156,13 @@ protected:
 class FirstLayer : public Layer {
 public:
     FirstLayer(int numBatch, int numNodes) :
-        Layer(numBatch, numNodes, nullptr, ActivationFunction(nullptr))
+        Layer(
+            numBatch,
+            numNodes,
+            nullptr,
+            ActivationFunction(
+                MatrixFunction(nullptr),
+                MatrixFunction(nullptr)))
     {
     }
     Matrix forwardPropagation(const Matrix& input) const override {
@@ -149,9 +174,16 @@ public:
 int main(void){
     const int numBatch = 3;
     const int firstNodeNum = 2;
-    ActivationFunction activationFunction([](double input) {
-        return std::max<double>(input, 0);
-    });
+    ActivationFunction activationFunction(
+        MatrixFunction([](double input) {
+            return std::max<double>(input, 0);
+        }),
+        MatrixFunction([](double input) {
+            if (input < 0)
+                return 0;
+            else
+                return 1;
+        }));
     FirstLayer firstLayer(numBatch, firstNodeNum);
     Layer secondLayer(numBatch, firstNodeNum, &firstLayer, activationFunction);
 
