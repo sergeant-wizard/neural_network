@@ -32,7 +32,7 @@ public:
         if (components)
             delete[] components;
         row = other.row;
-        row = other.col;
+        col = other.col;
         components = new double[other.row * other.col]();
         for (int i = 0; i < row * col; i++) {
             components[i] = other(i);
@@ -188,13 +188,19 @@ public:
             u(nodeIndex, batchIndex) += b(numBatch, 0);
         }}
         Matrix::swap(u, this->u);
-        return activationFunction.applyPrimaryFunction(u);
+        return activationFunction.applyPrimaryFunction(this->u);
     }
     static void backwardPropagation(Layer& prevLayer, const Layer& nextLayer) {
         Matrix delta = Matrix::ComponentProduct(
             prevLayer.activationFunction.applyDerivativeFunction(prevLayer.u),
             Matrix::MultT(nextLayer.w, nextLayer.delta));
         Matrix::swap(prevLayer.delta, delta);
+    }
+    void print() const {
+        std::cout << "weight" << std::endl;
+        w.print();
+        std::cout << "bias" << std::endl;
+        b.print();
     }
 
 protected:
