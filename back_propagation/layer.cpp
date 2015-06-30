@@ -48,7 +48,7 @@ void Layer::backwardPropagation(Layer& prevLayer, const Layer& nextLayer) {
 void Layer::gradientDescent(const Layer& prevLayer, Layer& nextLayer) {
     static const double epsilon = 0.1;
     Matrix DeltaW = Matrix::MultT2(nextLayer.delta, prevLayer.z);
-    DeltaW *= nextLayer.numBatch * epsilon;
+    DeltaW *= epsilon / nextLayer.numBatch;
     nextLayer.w -= DeltaW;
 
     Matrix DeltaB(nextLayer.numBatch, 1);
@@ -59,7 +59,7 @@ void Layer::gradientDescent(const Layer& prevLayer, Layer& nextLayer) {
         }
         DeltaB(batchIndex, 0) = sum;
     }
-    DeltaB *= nextLayer.numBatch * epsilon;
+    DeltaB *= epsilon / nextLayer.numBatch;
     nextLayer.b -= DeltaB;
 }
 void Layer::print() const {
@@ -67,4 +67,6 @@ void Layer::print() const {
     w.print();
     std::cout << "bias" << std::endl;
     b.print();
+    std::cout << "delta" << std::endl;
+    delta.print();
 }
