@@ -139,3 +139,17 @@ Matrix operator-(const Matrix& left, const Matrix& right) {
     return ret;
 }
 
+bool operator==(const Matrix& left, const Matrix& right) {
+    if (left.row != right.row) {
+        return false;
+    }
+    if (left.col != right.col) {
+        return false;
+    }
+    for (int index = 0; index < left.row * left.col; index++) {
+        if (left(index) != right(index)) {
+            return false;
+        }
+    }
+    return true;
+}
