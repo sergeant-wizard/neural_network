@@ -48,6 +48,11 @@ public:
         if (components)
             delete[] components;
     }
+    void fill(double value) {
+        for (int index = 0; index < row * col; index++) {
+            components[index] = value;
+        }
+    }
     int getRow() const {
         return row;
     }
@@ -175,6 +180,7 @@ public:
         u(1, 1),
         delta(1, 1)
     {
+        w.fill(0.5);
     }
     int getNumNodes() const {
         return numNodes;
@@ -209,9 +215,9 @@ protected:
     const ActivationFunction activationFunction;
     const Layer* prevLayer;
     // weight
-    const Matrix w;
+    Matrix w;
     // bias
-    const Matrix b;
+    Matrix b;
     Matrix u;
     Matrix delta;
 };
