@@ -148,13 +148,14 @@ public:
 
 int main(void){
     const int numBatch = 3;
+    const int firstNodeNum = 2;
     ActivationFunction activationFunction([](double input) {
         return std::max<double>(input, 0);
     });
-    FirstLayer firstLayer(numBatch, 2);
-    Layer secondLayer(numBatch, 2, &firstLayer, activationFunction);
+    FirstLayer firstLayer(numBatch, firstNodeNum);
+    Layer secondLayer(numBatch, firstNodeNum, &firstLayer, activationFunction);
 
-    Matrix input(2, numBatch);
+    Matrix input(firstNodeNum, numBatch);
     input(0, 0) = 1;
     input(1, 0) = 0;
     input(0, 1) = 0;
@@ -162,7 +163,19 @@ int main(void){
     input(0, 2) = 1;
     input(1, 2) = 1;
 
-    secondLayer.forwardPropagation(firstLayer.forwardPropagation(input));
+    Matrix Y = secondLayer.forwardPropagation(firstLayer.forwardPropagation(input));
+
+    // from forward propagation
+    // to backward propagation
+
+    // target output
+    Matrix target(firstNodeNum, numBatch);
+    target(0, 0) = 0;
+    target(1, 0) = 0;
+    target(0, 1) = 0;
+    target(1, 1) = 0;
+    target(0, 2) = 1;
+    target(1, 2) = 0;
 
     return 0;
 }
