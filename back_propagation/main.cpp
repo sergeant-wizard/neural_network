@@ -34,12 +34,12 @@ void applyIteration(FirstLayer& firstLayer, LastLayer& secondLayer) {
 
     // target output
     Matrix target(firstNodeNum, numBatch);
-    target(0, 0) = +1;
-    target(1, 0) = -1;
-    target(0, 1) = -1;
-    target(1, 1) = +1;
+    target(0, 0) = +0;
+    target(1, 0) = +0;
+    target(0, 1) = +0;
+    target(1, 1) = +0;
     target(0, 2) = +1;
-    target(1, 2) = +1;
+    target(1, 2) = +0;
 
     secondLayer.setDelta(Y -target);
     Layer::backwardPropagation(firstLayer, secondLayer);
@@ -64,7 +64,7 @@ int main(void) {
     FirstLayer firstLayer(numBatch, firstNodeNum, activationFunction);
     LastLayer secondLayer(numBatch, firstNodeNum, activationFunction, &firstLayer);
 
-    for (int i = 0; i < 10; i ++) {
+    for (int i = 0; i < 32; i ++) {
         applyIteration(firstLayer, secondLayer);
     }
     return 0;

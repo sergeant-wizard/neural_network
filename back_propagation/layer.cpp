@@ -12,7 +12,7 @@ Layer::Layer(
     activationFunction(activationFunction),
     prevLayer(prevLayer),
     w(numNodes, prevLayer ? prevLayer->getNumNodes() : 1),
-    b(numBatch, 1),
+    b(numNodes, 1),
     u(1, 1),
     z(1, 1),
     delta(1, 1)
@@ -28,9 +28,9 @@ Matrix Layer::forwardPropagation(const Matrix& input) {
     // input : numNodes * numBatch
     // u : nextLayer->getNumNodes() * 1
     Matrix u = Matrix::Mult(w, input);
-    for (int nodeIndex = 0; nodeIndex < numNodes; nodeIndex++) {
     for (int batchIndex = 0; batchIndex < numBatch; batchIndex++) {
-        u(nodeIndex, batchIndex) += b(batchIndex, 0);
+    for (int nodeIndex = 0; nodeIndex < numNodes; nodeIndex++) {
+        u(nodeIndex, batchIndex) += b(nodeIndex, 0);
     }}
     Matrix::swap(u, this->u);
     Matrix tmp = activationFunction.applyPrimaryFunction(this->u);
@@ -52,12 +52,12 @@ void Layer::gradientDescent(const Layer& prevLayer, Layer& nextLayer) {
     nextLayer.w -= DeltaW;
 
     Matrix DeltaB(nextLayer.numBatch, 1);
-    for (int batchIndex = 0; batchIndex < DeltaB.getRow(); batchIndex++) {
+    for (int nodeIndex = 0; nodeIndex < nextLayer.delta.getRow(); nodeIndex++) {
         double sum = 0;
-        for (int nodeIndex = 0; nodeIndex < nextLayer.delta.getRow(); nodeIndex++) {
+        for (int batchIndex = 0; batchIndex < DeltaB.getRow(); batchIndex++) {
             sum += nextLayer.delta(nodeIndex, batchIndex);
         }
-        DeltaB(batchIndex, 0) = sum;
+        DeltaB(nodeIndex, 0) = sum;
     }
     DeltaB *= epsilon / nextLayer.numBatch;
     nextLayer.b -= DeltaB;
