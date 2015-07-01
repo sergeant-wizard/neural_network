@@ -49,6 +49,13 @@ void Matrix::randomize(double min, double max) {
         components[index] = distribution(generator);
     }
 }
+double Matrix::norm2() const {
+    double ret = 0;
+    for (int index = 0; index < row * col; index++) {
+        ret += components[index] * components[index];
+    }
+    return ret;
+}
 int Matrix::getRow() const {
     return row;
 }

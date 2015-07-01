@@ -9,6 +9,7 @@ public:
     virtual ~Matrix();
     void fill(double value);
     void randomize(double min, double max);
+    double norm2() const;
     int getRow() const;
     int getCol() const;
     const double& operator()(int index) const;
