@@ -1,6 +1,7 @@
 #include<vector>
 #include<functional>
 #include<iostream>
+#include<fstream>
 #include<algorithm>
 
 #include "matrix.h"
@@ -18,6 +19,7 @@
 const int numBatch = 3;
 
 int main(void) {
+    std::ofstream ofs("residue.txt");
     srand(0);
     ActivationFunction rectifier(
         MatrixFunction([](double input) {
@@ -58,8 +60,7 @@ int main(void) {
     target(0, 2) = +1;
     target(1, 2) = +1;
 
-    for (int i = 0; i < 32; i ++) {
-        std::cout << "trial: " << i << std::endl;
+    for (int i = 0; i < 64; i ++) {
         // forward propagation
         Matrix Y = lastLayer.forwardPropagation(
             midLayer.forwardPropagation(
@@ -73,6 +74,7 @@ int main(void) {
         // Gradient Descent
         Layer::gradientDescent(midLayer, lastLayer);
         Layer::gradientDescent(firstLayer, midLayer);
+        ofs << (Y - target).norm2() << std::endl;
     }
 
     // check learned result
