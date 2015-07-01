@@ -58,8 +58,7 @@ int main(void) {
     target(0, 2) = +1;
     target(1, 2) = +1;
 
-    for (int i = 0; i < 32; i ++) {
-        std::cout << "trial: " << i << std::endl;
+    for (int i = 0; i < 64; i ++) {
         // forward propagation
         Matrix Y = lastLayer.forwardPropagation(
             midLayer.forwardPropagation(
@@ -73,14 +72,7 @@ int main(void) {
         // Gradient Descent
         Layer::gradientDescent(midLayer, lastLayer);
         Layer::gradientDescent(firstLayer, midLayer);
-
-        std::cout << "first" << std::endl;
-        firstLayer.print();
-        std::cout << "second" << std::endl;
-        midLayer.print();
-        std::cout << "third" << std::endl;
-        lastLayer.print();
-        std::cout << std::endl;
+        std::cout << "trial: " << i << " " << (Y - target).norm2() << std::endl;
     }
 
     // check learned result

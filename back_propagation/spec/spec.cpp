@@ -143,6 +143,14 @@ bool testMatrix() {
         c(1, 0) = -21; c(1, 1) = -37;
         return (a - b) == c;
     });
+    spec.addTest([]() {
+        // norm2
+        Matrix a(2, 2);
+        a(0, 0) =  1; a(0, 1) = 2;
+        a(1, 0) = -3; a(1, 1) = 4;
+
+        return a.norm2() == 30;
+    });
     return spec.execTest();
 }
 
