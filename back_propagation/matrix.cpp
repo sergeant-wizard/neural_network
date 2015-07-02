@@ -133,6 +133,12 @@ Matrix Matrix::MultT2(const Matrix& left, const Matrix& right) {
     }}
     return ret;
 }
+Matrix& Matrix::operator+=(const Matrix& other) {
+    for (int index = 0; index < row * col; index++) {
+        components[index] += other.components[index];
+    }
+    return (*this);
+}
 Matrix& Matrix::operator-=(const Matrix& other) {
     for (int index = 0; index < row * col; index++) {
         components[index] -= other.components[index];
@@ -146,6 +152,13 @@ Matrix& Matrix::operator*=(const double coef) {
     return (*this);
 }
 
+Matrix operator+(const Matrix& left, const Matrix& right) {
+    Matrix ret(left);
+    for (int i = 0; i < right.row * right.col; i++) {
+        ret(i) += right(i);
+    }
+    return ret;
+}
 Matrix operator-(const Matrix& left, const Matrix& right) {
     Matrix ret(left);
     for (int i = 0; i < right.row * right.col; i++) {

@@ -23,8 +23,10 @@ public:
     static Matrix Mult(const Matrix& left, const Matrix& right);
     static Matrix MultT1(const Matrix& left, const Matrix& right);
     static Matrix MultT2(const Matrix& left, const Matrix& right);
+    Matrix& operator+=(const Matrix& other);
     Matrix& operator-=(const Matrix& other);
     Matrix& operator*=(const double coef);
+    friend Matrix operator+(const Matrix& left, const Matrix& right);
     friend Matrix operator-(const Matrix& left, const Matrix& right);
     friend bool operator==(const Matrix& left, const Matrix& right);
 

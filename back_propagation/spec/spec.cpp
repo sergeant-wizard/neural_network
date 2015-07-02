@@ -102,6 +102,21 @@ bool testMatrix() {
         return Matrix::MultT2(a, b) == c;
     });
     spec.addTest([]() {
+        // operator +=
+        Matrix a(2, 2);
+        a(0, 0) =  1; a(0, 1) = 2;
+        a(1, 0) = -1; a(1, 1) = 3;
+
+        Matrix b(2, 2);
+        b(0, 0) = 10; b(0, 1) = 30;
+        b(1, 0) = 20; b(1, 1) = 40;
+
+        Matrix c(2, 2);
+        c(0, 0) =  11; c(0, 1) = 32;
+        c(1, 0) =  19; c(1, 1) = 43;
+        return (a += b) == c;
+    });
+    spec.addTest([]() {
         // operator -=
         Matrix a(2, 2);
         a(0, 0) =  1; a(0, 1) = 2;
@@ -129,6 +144,21 @@ bool testMatrix() {
         return (a *= 10) == b;
     });
     spec.addTest([]() {
+        // operator +
+        Matrix a(2, 2);
+        a(0, 0) =  1; a(0, 1) = 2;
+        a(1, 0) = -1; a(1, 1) = 3;
+
+        Matrix b(2, 2);
+        b(0, 0) = 10; b(0, 1) = 30;
+        b(1, 0) = 20; b(1, 1) = 40;
+
+        Matrix c(2, 2);
+        c(0, 0) =  11; c(0, 1) = 32;
+        c(1, 0) =  19; c(1, 1) = 43;
+        return (a + b) == c;
+    });
+    spec.addTest([]() {
         // operator -
         Matrix a(2, 2);
         a(0, 0) =  1; a(0, 1) = 2;
@@ -142,6 +172,19 @@ bool testMatrix() {
         c(0, 0) =  -9; c(0, 1) = -28;
         c(1, 0) = -21; c(1, 1) = -37;
         return (a - b) == c;
+    });
+    spec.addTest([]() {
+        // operator, combined
+        Matrix a(1, 1);
+        a(0, 0) =  1;
+
+        Matrix b(1, 1);
+        b(0, 0) = 10;
+
+        Matrix c(1, 1);
+        c(0, 0) = -3;
+
+        return (a + b + c)(0) == 8;
     });
     spec.addTest([]() {
         // norm2
