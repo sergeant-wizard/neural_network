@@ -13,7 +13,8 @@ public:
     int getNumNodes() const;
     virtual Matrix forwardPropagation(const Matrix& input);
     static void backwardPropagation(Layer& prevLayer, const Layer& nextLayer);
-    static void gradientDescent(const Layer& prevLayer, Layer& nextLayer);
+    static void gradientDescentForWeight(const Layer& prevLayer, Layer& nextLayer);
+    static void gradientDescentForBias(Layer& nextLayer);
     void print() const;
 
 protected:
@@ -23,8 +24,11 @@ protected:
     const Layer* prevLayer;
     // weight
     Matrix w;
+    Matrix prevDeltaW;
     // bias
     Matrix b;
+    Matrix prevDeltaB;
+
     Matrix u;
     Matrix z;
     Matrix delta;

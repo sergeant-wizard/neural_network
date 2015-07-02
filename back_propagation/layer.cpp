@@ -13,7 +13,9 @@ Layer::Layer(
     activationFunction(activationFunction),
     prevLayer(prevLayer),
     w(numNodes, prevLayer ? prevLayer->getNumNodes() : 1),
+    prevDeltaW(numNodes, prevLayer ? prevLayer->getNumNodes() : 1),
     b(numNodes, 1),
+    prevDeltaB(numNodes, 1),
     u(1, 1),
     z(1, 1),
     delta(1, 1)
@@ -49,12 +51,29 @@ void Layer::backwardPropagation(Layer& prevLayer, const Layer& nextLayer) {
     Matrix::swap(prevLayer.delta, delta);
 }
 
-void Layer::gradientDescent(const Layer& prevLayer, Layer& nextLayer) {
-    static const double epsilon = 0.1;
-    Matrix DeltaW = Matrix::MultT2(nextLayer.delta, prevLayer.z);
-    DeltaW *= epsilon / nextLayer.numBatch;
-    nextLayer.w -= DeltaW;
+void Layer::gradientDescentForWeight(const Layer& prevLayer, Layer& nextLayer) {
+    static const double epsilon = 0.1; // learning rate
+    static const double lambda = 0.01; // weight decay
+    static const double mu = 0.005; // weight momentum
 
+    // pure gradient descent
+    Matrix DeltaW = Matrix::MultT2(nextLayer.delta, prevLayer.z);
+    DeltaW *= -epsilon / nextLayer.numBatch;
+
+    Matrix weightDecay = nextLayer.w;
+    weightDecay *= -lambda * epsilon;
+
+    Matrix momentum = nextLayer.prevDeltaW;
+    momentum *= mu;
+
+    nextLayer.prevDeltaW = DeltaW + weightDecay + momentum;
+
+    nextLayer.w += nextLayer.prevDeltaW;
+}
+
+void Layer::gradientDescentForBias(Layer& nextLayer) {
+    static const double epsilon = 0.1; // learning rate
+    static const double mu = 0.005; // bias momentum
     Matrix DeltaB(nextLayer.numBatch, 1);
     for (int nodeIndex = 0; nodeIndex < nextLayer.delta.getRow(); nodeIndex++) {
         double sum = 0;
@@ -63,9 +82,15 @@ void Layer::gradientDescent(const Layer& prevLayer, Layer& nextLayer) {
         }
         DeltaB(nodeIndex, 0) = sum;
     }
-    DeltaB *= epsilon / nextLayer.numBatch;
-    nextLayer.b -= DeltaB;
+    DeltaB *= -epsilon / nextLayer.numBatch;
+
+    Matrix momentum = nextLayer.prevDeltaB;
+    momentum *= mu;
+
+    nextLayer.prevDeltaB = DeltaB + momentum;
+    nextLayer.b += nextLayer.prevDeltaB;
 }
+
 void Layer::print() const {
     std::cout << "weight" << std::endl;
     w.print();

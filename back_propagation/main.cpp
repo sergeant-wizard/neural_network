@@ -72,8 +72,10 @@ int main(void) {
         Layer::backwardPropagation(firstLayer, midLayer);
 
         // Gradient Descent
-        Layer::gradientDescent(midLayer, lastLayer);
-        Layer::gradientDescent(firstLayer, midLayer);
+        Layer::gradientDescentForWeight(midLayer, lastLayer);
+        Layer::gradientDescentForBias(lastLayer);
+        Layer::gradientDescentForWeight(firstLayer, midLayer);
+        Layer::gradientDescentForBias(midLayer);
         ofs << (Y - target).norm2() << std::endl;
     }
 
