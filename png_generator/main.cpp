@@ -98,8 +98,8 @@ private:
 };
 
 int main(int, char** argv) {
-    static const int width = 4;
-    static const int height = 4;
+    static const int width = 28;
+    static const int height = 28;
 
     PngWriter writer(width, height);
     writer.read("out.bin");
