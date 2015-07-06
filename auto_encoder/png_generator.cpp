@@ -97,6 +97,8 @@ void PngWriter::createTestData(const std::string& filename) {
     fout.write(reinterpret_cast<const char*>(buffer), 16*4);
 }
 
+// for testing
+/*
 int main(void) {
     static const int width = 28;
     static const int height = 28;
@@ -107,3 +109,4 @@ int main(void) {
 
     return 0;
 }
+*/
