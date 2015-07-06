@@ -13,20 +13,21 @@ void MatrixToPNG(const Matrix& matrix) {
     }
     writer.write("out.png");
 }
-Matrix MnistToMatrix(const std::string& filename) {
+std::vector<Matrix> MnistToMatrix(const std::string& filename) {
     static const double max = static_cast<double>(std::numeric_limits<uint8_t>::max());
     MnistLoader mnistLoader(filename);
-    Matrix ret(numRows * numCols, 1);
+    std::vector<Matrix> ret(numImages, Matrix(numRows * numCols, 1));
+    for (int imageIndex = 0; imageIndex < numImages; imageIndex++) {
     for (int pixelIndex = 0; pixelIndex < numRows * numCols; pixelIndex++) {
-        ret(pixelIndex) = static_cast<double>(mnistLoader.getPixel(pixelIndex)) / max;
-    }
+        ret.at(imageIndex)(pixelIndex) = static_cast<double>(mnistLoader.getPixel(imageIndex * numRows * numCols + pixelIndex)) / max;
+    }}
     return ret;
 }
 }
 
 // for testing
 int main(void) {
-    Matrix mat = MnistIO::MnistToMatrix("../mnist_loader/t10k-images-idx3-ubyte");
-    MnistIO::MatrixToPNG(mat);
+    std::vector<Matrix> mat = MnistIO::MnistToMatrix("../mnist_loader/t10k-images-idx3-ubyte");
+    MnistIO::MatrixToPNG(mat.at(3));
     return 0;
 }
