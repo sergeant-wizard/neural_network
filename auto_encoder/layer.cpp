@@ -21,8 +21,8 @@ Layer::Layer(
     delta(1, 1)
 {
     for (int i = 0; i < w.getRow() * w.getCol(); i++) {
-        int dice = rand() % 10;
-        w(i) = static_cast<double>(dice) / 10.0;
+        int dice = rand() % 20;
+        w(i) = 0.4 + static_cast<double>(dice) / 100.0;
     }
 }
 
@@ -52,9 +52,9 @@ void Layer::backwardPropagation(Layer& prevLayer, const Layer& nextLayer) {
 }
 
 void Layer::gradientDescentForWeight(const Layer& prevLayer, Layer& nextLayer) {
-    static const double epsilon = 0.1; // learning rate
-    static const double lambda = 0.01; // weight decay
-    static const double mu = 0.001; // weight momentum
+    static const double epsilon = 0.005; // learning rate
+    static const double lambda = 0.1; // weight decay
+    static const double mu = 0.5; // weight momentum
 
     // pure gradient descent
     Matrix DeltaW = Matrix::MultT2(nextLayer.delta, prevLayer.z);
@@ -72,8 +72,8 @@ void Layer::gradientDescentForWeight(const Layer& prevLayer, Layer& nextLayer) {
 }
 
 void Layer::gradientDescentForBias(Layer& nextLayer) {
-    static const double epsilon = 0.1; // learning rate
-    static const double mu = 0.001; // bias momentum
+    static const double epsilon = 0.01; // learning rate
+    static const double mu = 0.5; // bias momentum
     Matrix DeltaB(nextLayer.numNodes, 1);
     for (int nodeIndex = 0; nodeIndex < nextLayer.delta.getRow(); nodeIndex++) {
         double sum = 0;
