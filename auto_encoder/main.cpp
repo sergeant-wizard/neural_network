@@ -3,33 +3,23 @@
 #include<iostream>
 #include<fstream>
 #include<algorithm>
+#include<math.h>
 
 #include "matrix.h"
 #include "activation_function.h"
 #include "layer.h"
-
-/*
- * w : weight
- * b : bias
- * u : input
- * y : output
- * d : target output
- */
-
-const int numBatch = 3;
+#include "mnist_io.h"
 
 int main(void) {
     std::ofstream ofs("residue.txt");
     srand(0);
     ActivationFunction rectifier(
         MatrixFunction([](double input) {
-            return std::max<double>(input, 0);
+            return 1.0 / (1.0 + exp(input));
         }),
         MatrixFunction([](double input) {
-            if (input < 0)
-                return 0;
-            else
-                return 1;
+            double exp_ = exp(input);
+            return exp_ / (1.0 + exp_) / (1.0 + exp_);
         }));
     ActivationFunction identity(
         MatrixFunction([](double input) {
@@ -39,33 +29,37 @@ int main(void) {
             return 1;
         }));
 
-    const int firstNodeNum = 2;
-    FirstLayer firstLayer(numBatch, firstNodeNum, rectifier);
-    Layer midLayer(numBatch, 3, rectifier, &firstLayer);
-    LastLayer lastLayer(numBatch, 2, identity, &midLayer);
+    const int numBatches = 100;
+    const int numSamples = 100;
+    const int firstLayerNodeNum = MnistIO::numRows * MnistIO::numCols;
+    const int midLayerNodeNum = 100;
+    FirstLayer firstLayer(numBatches, firstLayerNodeNum, rectifier);
+    Layer midLayer(numBatches, midLayerNodeNum, rectifier, &firstLayer);
+    LastLayer lastLayer(numBatches, firstLayerNodeNum, identity, &midLayer);
 
-    Matrix input(firstNodeNum, numBatch);
-    input(0, 0) = +1;
-    input(1, 0) = -1;
-    input(0, 1) = -1;
-    input(1, 1) = +1;
-    input(0, 2) = +1;
-    input(1, 2) = +1;
+    std::vector<Matrix> inputs = MnistIO::MnistToMatrixInBatches("../mnist_loader/t10k-images-idx3-ubyte", numBatches);
 
-    Matrix target(firstNodeNum, numBatch);
-    target(0, 0) = +1;
-    target(1, 0) = -1;
-    target(0, 1) = -1;
-    target(1, 1) = +1;
-    target(0, 2) = +1;
-    target(1, 2) = +1;
+    Matrix average(firstLayerNodeNum, 1);
+    for (int batchIndex = 0; batchIndex < numBatches; batchIndex++) {
+    for (int sampleIndex = 0; sampleIndex < numSamples; sampleIndex++) {
+    for (int pixelIndex = 0; pixelIndex < firstLayerNodeNum; pixelIndex++) {
+        average(pixelIndex) += inputs.at(batchIndex)(pixelIndex, sampleIndex) / numBatches / numSamples;
+    }}}
 
-    for (int i = 0; i < 64; i ++) {
+    for (int batchIndex = 0; batchIndex < numBatches; batchIndex++) {
+    for (int sampleIndex = 0; sampleIndex < numSamples; sampleIndex++) {
+    for (int pixelIndex = 0; pixelIndex < firstLayerNodeNum; pixelIndex++) {
+        inputs.at(batchIndex)(pixelIndex, sampleIndex) -= average(pixelIndex);
+    }}}
+
+    for (int batchIndex = 0; batchIndex < numBatches; batchIndex++) {
+        const Matrix& input = inputs.at(batchIndex);
+        std::cout << "batch index" << batchIndex << std::endl;
         // forward propagation
         Matrix Y = lastLayer.forwardPropagation(
             midLayer.forwardPropagation(
                 firstLayer.forwardPropagation(input)));
-        lastLayer.setDelta(Y - target);
+        lastLayer.setDelta(Y - input);
 
         // backward propagation
         Layer::backwardPropagation(midLayer, lastLayer);
@@ -76,13 +70,12 @@ int main(void) {
         Layer::gradientDescentForBias(lastLayer);
         Layer::gradientDescentForWeight(firstLayer, midLayer);
         Layer::gradientDescentForBias(midLayer);
-        ofs << (Y - target).norm2() << std::endl;
+        std::cout << batchIndex << " " << (Y - input).norm2() << std::endl;
     }
 
-    // check learned result
-    std::cout << "learned result:" << std::endl;
-    lastLayer.forwardPropagation(
+    Matrix outputSample = lastLayer.forwardPropagation(
        midLayer.forwardPropagation(
-           firstLayer.forwardPropagation(input))).print();
+           firstLayer.forwardPropagation(inputs.front())));
+    MnistIO::MatrixToPNG(outputSample, 0);
     return 0;
 }
