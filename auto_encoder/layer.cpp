@@ -74,7 +74,7 @@ void Layer::gradientDescentForWeight(const Layer& prevLayer, Layer& nextLayer) {
 void Layer::gradientDescentForBias(Layer& nextLayer) {
     static const double epsilon = 0.1; // learning rate
     static const double mu = 0.001; // bias momentum
-    Matrix DeltaB(nextLayer.numBatch, 1);
+    Matrix DeltaB(nextLayer.numNodes, 1);
     for (int nodeIndex = 0; nodeIndex < nextLayer.delta.getRow(); nodeIndex++) {
         double sum = 0;
         for (int batchIndex = 0; batchIndex < DeltaB.getRow(); batchIndex++) {
