@@ -9,7 +9,7 @@ void MatrixToPNG(const Matrix& matrix) {
     static const double max = static_cast<double>(std::numeric_limits<uint8_t>::max());
     PngWriter writer(numRows, numCols);
     for (int row = 0; row < matrix.getRow(); row++) {
-        uint8_t byte = static_cast<uint8_t>(round(matrix(row) * max));
+        uint8_t byte = static_cast<uint8_t>(round(std::max(matrix(row), 0.0)* max));
         writer.addPixel(byte);
     }
     writer.write("out.png");
@@ -18,7 +18,7 @@ void MatrixToPNG(const Matrix& matrix, int sampleIndex) {
     static const double max = static_cast<double>(std::numeric_limits<uint8_t>::max());
     PngWriter writer(numRows, numCols);
     for (int row = 0; row < matrix.getRow(); row++) {
-        uint8_t byte = static_cast<uint8_t>(round(matrix(row, sampleIndex) * max));
+        uint8_t byte = static_cast<uint8_t>(round(std::max(matrix(row, sampleIndex), 0.0) * max));
         writer.addPixel(byte);
     }
     writer.write("out.png");
