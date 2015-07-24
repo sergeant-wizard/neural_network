@@ -12,6 +12,6 @@
 テキストに書いてあり通り、主成分分析に対応する作用の恩恵。
 
 入力
-![residue](https://github.com/sergeant-wizard/neural_network/blob/master/auto_encoder/input.png)
+![residue](https://github.com/sergeant-wizard/neural_network/blob/master/auto_encoder_20150708/input.png)
 出力
-![residue](https://github.com/sergeant-wizard/neural_network/blob/master/auto_encoder/100_100.png)
+![residue](https://github.com/sergeant-wizard/neural_network/blob/master/auto_encoder_20150708/100_100.png)
