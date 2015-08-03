@@ -23,6 +23,7 @@ public:
         }
     };
     RBM(unsigned numVisibleNodes, unsigned numHiddenNodes);
+    void update(const UpdatedParams& modelUpdateParams, const UpdatedParams& dataUpdateParams);
     UpdatedParams getModelUpdateParams() const;
     UpdatedParams getDataUpdateParams(const Matrix& input) const;
 
@@ -51,6 +52,14 @@ RBM::RBM(unsigned numVisibleNodes, unsigned numHiddenNodes) :
     visibleBias(numVisibleNodes, 1),
     hiddenBias(numHiddenNodes, 1)
 {
+}
+
+void RBM::update(const UpdatedParams& modelUpdateParams, const UpdatedParams& dataUpdateParams)
+{
+    static const double learningRate = 0.01;
+    weight += ((dataUpdateParams.weight - modelUpdateParams.weight) *= learningRate);
+    visibleBias += ((dataUpdateParams.visibleBias - modelUpdateParams.visibleBias) *= learningRate);
+    hiddenBias += ((dataUpdateParams.hiddenBias - modelUpdateParams.hiddenBias) *= learningRate);
 }
 
 RBM::UpdatedParams RBM::getModelUpdateParams() const {
@@ -147,7 +156,9 @@ int main(void) {
     }
 
     RBM rbm(numVisibleNodes, numHiddenNodes);
-    rbm.getModelUpdateParams();
+    RBM::UpdatedParams modelUpdateParams = rbm.getModelUpdateParams();
+    RBM::UpdatedParams dataUpdateParams = rbm.getDataUpdateParams(input);
+    rbm.update(modelUpdateParams, dataUpdateParams);
 
     return 0;
 }
