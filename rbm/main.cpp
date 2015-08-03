@@ -15,8 +15,8 @@ public:
         Matrix weight;
         Matrix visibleBias;
         Matrix hiddenBias;
-        void normalize(int numGibbsSamples) {
-            const double coef = 1.0 / static_cast<double>(numGibbsSamples);
+        void normalize(int num) {
+            const double coef = 1.0 / static_cast<double>(num);
             visibleBias *= coef;
             hiddenBias *= coef;
             weight *= coef;
@@ -27,8 +27,12 @@ public:
     UpdatedParams getModelUpdateParams() const;
     UpdatedParams getDataUpdateParams(const Matrix& input) const;
 
+    // these methods are only for debugging and should not be used for the actual numerical procedure
+    double getEnergy(const Matrix& visibleNode, const Matrix& hiddenNode) const;
+    static std::vector<Matrix> getPowerSet(unsigned numNodes);
+
 private:
-    static const unsigned numGibbsSamples = 16;
+    static const unsigned numGibbsSamples = 1024;
     const unsigned numVisibleNodes;
     const unsigned numHiddenNodes;
 
@@ -52,11 +56,12 @@ RBM::RBM(unsigned numVisibleNodes, unsigned numHiddenNodes) :
     visibleBias(numVisibleNodes, 1),
     hiddenBias(numHiddenNodes, 1)
 {
+    weight.randomize(-0.1, 0.1);
 }
 
 void RBM::update(const UpdatedParams& modelUpdateParams, const UpdatedParams& dataUpdateParams)
 {
-    static const double learningRate = 0.01;
+    static const double learningRate = 0.1;
     weight += ((dataUpdateParams.weight - modelUpdateParams.weight) *= learningRate);
     visibleBias += ((dataUpdateParams.visibleBias - modelUpdateParams.visibleBias) *= learningRate);
     hiddenBias += ((dataUpdateParams.hiddenBias - modelUpdateParams.hiddenBias) *= learningRate);
@@ -73,7 +78,7 @@ RBM::UpdatedParams RBM::getModelUpdateParams() const {
     // Gibbs sampling
     for (unsigned iterationIndex = 0; iterationIndex < numGibbsSamples; iterationIndex++) {
         // update visible layer
-        for (unsigned visibleNodeIndex = 0; visibleNodeIndex < numHiddenNodes; visibleNodeIndex++) {
+        for (unsigned visibleNodeIndex = 0; visibleNodeIndex < numVisibleNodes; visibleNodeIndex++) {
             visibleNode(visibleNodeIndex) = decideActivation(getVisiblePosteriorProbability(visibleNodeIndex, hiddenNode));
         }
         // update hidden layer
@@ -116,6 +121,22 @@ RBM::UpdatedParams RBM::getDataUpdateParams(const Matrix& input) const {
     return ret;
 }
 
+double RBM::getEnergy(const Matrix& visibleNode, const Matrix& hiddenNode) const {
+    double sum = 0;
+    for (unsigned visibleNodeIndex = 0; visibleNodeIndex < numVisibleNodes; visibleNodeIndex++) {
+        sum += visibleBias(visibleNodeIndex, 0) * visibleNode(visibleNodeIndex);
+    }
+    for (unsigned hiddenNodeIndex = 0; hiddenNodeIndex < numHiddenNodes; hiddenNodeIndex++) {
+        sum += hiddenBias(hiddenNodeIndex, 0) * hiddenNode(hiddenNodeIndex);
+    }
+    for (unsigned visibleNodeIndex = 0; visibleNodeIndex < numVisibleNodes; visibleNodeIndex++) {
+        for (unsigned hiddenNodeIndex = 0; hiddenNodeIndex < numHiddenNodes; hiddenNodeIndex++) {
+            sum += weight(visibleNodeIndex, hiddenNodeIndex) * visibleNode(visibleNodeIndex) * hiddenNode(hiddenNodeIndex);
+        }
+    }
+    return exp(sum);
+}
+
 double RBM::sigmoid(const double input) {
     return 1.0 / (1.0 + exp(-input));
 }
@@ -128,7 +149,7 @@ double RBM::decideActivation(double probability) {
 
 double RBM::getVisiblePosteriorProbability(unsigned visibleNodeIndex, const Matrix& hiddenNode) const {
     double sigmoidArg = visibleBias(visibleNodeIndex);
-    for (unsigned hiddenNodeIndex = 0; hiddenNodeIndex < numVisibleNodes; hiddenNodeIndex++) {
+    for (unsigned hiddenNodeIndex = 0; hiddenNodeIndex < numHiddenNodes; hiddenNodeIndex++) {
         sigmoidArg += weight(visibleNodeIndex, hiddenNodeIndex) * hiddenNode(hiddenNodeIndex);
     }
     return sigmoid(sigmoidArg);
@@ -142,23 +163,67 @@ double RBM::getHiddenPosteriorProbability(unsigned hiddenNodeIndex, const Matrix
     return sigmoid(sigmoidArg);
 }
 
+std::vector<Matrix> RBM::getPowerSet(unsigned numNodes) {
+    std::vector<Matrix> ret;
+    for (int i = 0; i < pow(2, numNodes); i++) {
+        Matrix newNode(numNodes, 1);
+        for (unsigned component = 0; component < numNodes; component++) {
+            newNode(component) = (i & (1 << component)) >> component;
+        }
+        ret.push_back(newNode);
+    }
+    return ret;
+}
+
 int main(void) {
-    static const unsigned numVisibleNodes = 2;
+    static const unsigned numVisibleNodes = 3;
     static const unsigned numHiddenNodes = 2;
-    static const unsigned numInputData = 2;
+    static const unsigned numInputData = 3;
     Matrix input(numVisibleNodes, numInputData);
 
     {
-        input(0, 0) = 0;
-        input(0, 1) = 0;
+        input(0, 0) = 1;
         input(1, 0) = 0;
-        input(1, 1) = 0;
+        input(2, 0) = 0;
+        input(0, 1) = 0;
+        input(1, 1) = 1;
+        input(2, 1) = 0;
+        input(0, 2) = 0;
+        input(1, 2) = 0;
+        input(2, 2) = 1;
     }
 
     RBM rbm(numVisibleNodes, numHiddenNodes);
-    RBM::UpdatedParams modelUpdateParams = rbm.getModelUpdateParams();
-    RBM::UpdatedParams dataUpdateParams = rbm.getDataUpdateParams(input);
-    rbm.update(modelUpdateParams, dataUpdateParams);
+    for (int iteration = 0; iteration < 4096; iteration++) {
+        RBM::UpdatedParams modelUpdateParams = rbm.getModelUpdateParams();
+        RBM::UpdatedParams dataUpdateParams = rbm.getDataUpdateParams(input);
+        rbm.update(modelUpdateParams, dataUpdateParams);
+    }
 
+    // for debugging
+    // power set of visible nodes
+    std::vector<Matrix> allVisibleNodes = RBM::getPowerSet(numVisibleNodes);
+
+    // power set of hidden nodes
+    std::vector<Matrix> allHiddenNodes = RBM::getPowerSet(numHiddenNodes);
+
+    std::vector<double> energies;
+    double Z = 0;
+    for (const auto& visibleNode : allVisibleNodes) {
+        double sum = 0;
+        for (const auto& hiddenNode : allHiddenNodes) {
+            sum += rbm.getEnergy(visibleNode, hiddenNode);
+        }
+        Z += sum;
+        energies.push_back(sum);
+    }
+    for (int i = 0; i < 8; i++) {
+        std::cout <<
+            ((i & (1 << 0)) >> 0) <<
+            ((i & (1 << 1)) >> 1) <<
+            ((i & (1 << 2)) >> 2) <<
+            " " <<
+            (energies.at(i) / Z) << std::endl;
+    }
     return 0;
 }
