@@ -1,5 +1,15 @@
 # ニューラルネットワーク勉強の軌跡
 
+## index
+
+content | link
+AND, XOR gates by backward propagation | https://github.com/sergeant-wizard/neural_network/tree/master/back_propagation_20150630
+identity mapping by backward propagation | https://github.com/sergeant-wizard/neural_network/tree/master/back_propagation_20150701
+momentum and decaying | https://github.com/sergeant-wizard/neural_network/tree/master/back_propagation_20150702
+auto encoder | https://github.com/sergeant-wizard/neural_network/tree/master/auto_encoder_20150708
+Gibbs Sampling | https://github.com/sergeant-wizard/neural_network/tree/master/gibbs_sampling
+Restricted Boltzmann Machine | https://github.com/sergeant-wizard/neural_network/tree/master/rbm
+
 ## これは何ですか
 ニューラルネットワークの勉強の軌跡。
 著者は修士の専攻が数値計算系であったが、
