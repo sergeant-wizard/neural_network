@@ -1,11 +1,8 @@
 #include<vector>
 #include<random>
-#include<functional>
 #include<iostream>
-#include<fstream>
-#include<algorithm>
 #include<cmath>
-#include<forward_list>
+#include<iomanip>
 
 #include "matrix.h"
 
@@ -178,21 +175,19 @@ std::vector<Matrix> RBM::getPowerSet(unsigned numNodes) {
 int main(void) {
     static const unsigned numVisibleNodes = 3;
     static const unsigned numHiddenNodes = 2;
-    static const unsigned numInputData = 2;
+    static const unsigned numInputData = 3;
     Matrix input(numVisibleNodes, numInputData);
 
     {
-        input(0, 0) = 0;
-        input(1, 0) = 0;
+        input(0, 0) = 1;
+        input(1, 0) = 1;
         input(2, 0) = 0;
-        input(0, 1) = 0;
-        input(1, 1) = 1;
+        input(0, 1) = 1;
+        input(1, 1) = 0;
         input(2, 1) = 1;
-        /*
         input(0, 2) = 0;
-        input(1, 2) = 0;
+        input(1, 2) = 1;
         input(2, 2) = 1;
-        */
     }
 
     RBM rbm(numVisibleNodes, numHiddenNodes);
@@ -225,6 +220,7 @@ int main(void) {
             ((i & (1 << 1)) >> 1) <<
             ((i & (1 << 2)) >> 2) <<
             " " <<
+            std::setprecision(3) << std::fixed <<
             (energies.at(i) / Z) << std::endl;
     }
     return 0;
