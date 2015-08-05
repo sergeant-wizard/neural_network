@@ -1,4 +1,4 @@
-## RBM with CD
+## Restricted Boltzmann Machine with Contrast Divergence
 
 ### 背景
 

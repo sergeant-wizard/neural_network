@@ -8,6 +8,7 @@
 - [auto encoder](https://github.com/sergeant-wizard/neural_network/tree/master/auto_encoder_20150708)
 - [Gibbs Sampling](https://github.com/sergeant-wizard/neural_network/tree/master/gibbs_sampling)
 - [Restricted Boltzmann Machine](https://github.com/sergeant-wizard/neural_network/tree/master/rbm)
+- [Contrast Divergence](https://github.com/sergeant-wizard/neural_network/tree/master/cd)
 
 ## これは何ですか
 ニューラルネットワークの勉強の軌跡。
