@@ -48,6 +48,7 @@ private:
     // Matrix hiddenNode;
     Matrix visibleBias;
     Matrix hiddenBias;
+    Matrix previousWeightUpdate;
 };
 
 RBM::RBM(unsigned numVisibleNodes, unsigned numHiddenNodes) :
@@ -55,7 +56,8 @@ RBM::RBM(unsigned numVisibleNodes, unsigned numHiddenNodes) :
     numHiddenNodes(numHiddenNodes),
     weight(numVisibleNodes, numHiddenNodes),
     visibleBias(numVisibleNodes, 1),
-    hiddenBias(numHiddenNodes, 1)
+    hiddenBias(numHiddenNodes, 1),
+    previousWeightUpdate(numVisibleNodes, numHiddenNodes)
 {
     weight.randomize(-0.1, 0.1);
 }
@@ -71,6 +73,9 @@ void RBM::update(const UpdatedParams& modelUpdateParams, const UpdatedParams& da
 void RBM::updateByCD(const UpdatedParams& updatedParams)
 {
     static const double learningRate = 0.01;
+    static const double decayRate = 0.0;
+    static const double momentumRate = 0.0;
+
     Matrix weightUpdate = updatedParams.weight;
     Matrix visibleBiasUpdade = updatedParams.visibleBias;
     Matrix hiddenBiasUpdate = updatedParams.hiddenBias;
@@ -78,8 +83,14 @@ void RBM::updateByCD(const UpdatedParams& updatedParams)
     weightUpdate *= learningRate;
     visibleBias *= learningRate;
     hiddenBiasUpdate *= learningRate;
-
     weight += weightUpdate;
+
+    // Matrix decay = weight;
+    // decay *= decayRate;
+
+    // weightUpdate -= decay;
+    // weightUpdate += (momentumRate * previousWeightUpdate);
+    // weight += (previousWeightUpdate = weightUpdate);
     visibleBias += visibleBiasUpdade;
     hiddenBias += hiddenBiasUpdate;
 }
@@ -247,7 +258,7 @@ std::vector<Matrix> RBM::getPowerSet(unsigned numNodes) {
 int main(void) {
     static const unsigned numVisibleNodes = 3;
     static const unsigned numHiddenNodes = 2;
-    static const unsigned numInputData = 3;
+    static const unsigned numInputData = 2;
     Matrix input(numVisibleNodes, numInputData);
 
     {
@@ -259,9 +270,11 @@ int main(void) {
         input(1, 1) = 1;
         input(2, 1) = 0;
 
+        /*
         input(0, 1) = 0;
         input(1, 1) = 0;
         input(2, 1) = 1;
+        */
     }
 
     RBM rbm(numVisibleNodes, numHiddenNodes);

@@ -26,6 +26,7 @@ public:
     Matrix& operator+=(const Matrix& other);
     Matrix& operator-=(const Matrix& other);
     Matrix& operator*=(const double coef);
+    friend Matrix operator*(double coef, const Matrix& right);
     friend Matrix operator+(const Matrix& left, const Matrix& right);
     friend Matrix operator-(const Matrix& left, const Matrix& right);
     friend bool operator==(const Matrix& left, const Matrix& right);
